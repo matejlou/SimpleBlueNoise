@@ -29,13 +29,13 @@ Blue noise is noise that contains mostly high-frequency components, meaning that
 
 | White Noise | Blue Noise |
 |-|-|
-|![white_noise_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/5eeb3dca-8d83-4853-b694-455c62ae9922)|![void_and_cluster_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/f30335d9-010b-4ade-b3df-122f01afceb0)|
+|![white_noise_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/eda47b5f-cd89-4195-88a4-9f108eaabe44)|![void_and_cluster_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/c85d399e-2ab6-4c18-92cb-b3495847ab01)|
 
 Blue noise textures are useful whenever you need evenly distributed random samples. Some common use cases include image dithering and 3D rendering.
 
 | White Noise Dithering | Blue Noise Dithering |
 |-|-|
-|![dither_white_noise](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/d66d5bd7-bc75-4666-8257-a0d0181d4c1e)|![dither_blue_noise](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/0e7f585e-ba96-4306-8ed5-7232e68b228b)|
+|![dither_white_noise](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/c771a2aa-c511-4937-b37c-b4069a2bb18e)|![dither_blue_noise](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/6356884a-5a65-49d1-bfa8-bcebe10c4b7d)|
 
 # Implementation
 ### Void-and-Cluster Algorithm
@@ -79,11 +79,11 @@ Below is a comparison between the output of each algorithm and their correspondi
 
 |Void-and-Cluster, σ = 1.9, threshold = 0.1|
 |-|
-|![void_and_cluster_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/f30335d9-010b-4ade-b3df-122f01afceb0) ![void_and_cluster_256_fft](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/735a57b8-3c01-406b-82e2-3f9e3e3590f6)|
+|![void_and_cluster_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/da03258d-b112-4b26-8e5c-a383d61b4aee) ![void_and_cluster_256_fft](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/19586558-daca-4b83-8bec-c36f8a05cebf)|
 
 |Forced Random, s = 2.0, d = 2.7, threshold = 0.5 |
 |-|
-|![forced_random_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/763280c9-6ea2-4042-96e4-8513e915818c) ![forced_random_256_fft](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/bd6cc5c6-92fc-4309-9f79-dc89e56b27f3)|
+|![forced_random_256](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/b9de18d3-91d3-41ec-a751-b4c1e9380d01) ![forced_random_256_fft](https://github.com/matejlou/SimpleBlueNoise/assets/120740455/961b5c83-14f8-489e-bafe-de54fec99557)|
 
 # Performance
 
