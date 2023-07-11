@@ -99,6 +99,17 @@ Platform: _Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz_.
 | 128 x 128  | 4s       | 2s      |
 | 256 x 256  | 62s      | 37s     |
 
+# Additional Reading
+
+[Christoph Peters, _"Free Blue Noise Textures"_](http://momentsingraphics.de/BlueNoise.html)
+
+[Alan Wolfe, _"What the Heck is Blue Noise?"_](https://blog.demofox.org/2018/01/30/what-the-heck-is-blue-noise/)
+
+[Alan Wolfe, _"Using Blue Noise for Raytraced Soft Shadows"_](https://blog.demofox.org/2020/05/16/using-blue-noise-for-raytraced-soft-shadows/)
+
+[Alan Wolfe, _"Not All Blue Noise is Created Equal"_](https://blog.demofox.org/2018/08/12/not-all-blue-noise-is-created-equal/)
+
+
 [^1]: R. Ulichney, _"The void-and-cluster method
 for dither array generation"_ (1993).
 
