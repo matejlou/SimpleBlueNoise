@@ -2,7 +2,7 @@
 A small, header-only blue noise texture generator in C99.
 
 # Usage
-To use the library, simply include the header file. You must **#define** the implementation in exactly _one_ .c/.cpp file.
+To use the library, simply **#include** the header file. You must **#define** the implementation in exactly _one_ .c/.cpp file.
 
 ```c
 #define BLUE_NOISE_GENERATOR_IMPLEMENTATION
