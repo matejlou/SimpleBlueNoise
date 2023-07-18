@@ -74,7 +74,7 @@ struct BlueNoiseGeneratorInternalVoidAndClusterData
     int width, height;
     unsigned int* buffer;
     double* energy_table;
-    double* energy_mask;
+    double* energy_kernel;
     struct { int x, y; double energy; } highest, lowest;
 };
 
@@ -93,22 +93,23 @@ static void blue_noise_generator_internal_void_and_cluster_update_energy(struct 
     data->highest.energy = -INFINITY;
     data->lowest.energy = +INFINITY;
 
-    const int half_width = data->width / 2 + 1;
-
     for (int e_y = 0; e_y < data->height; e_y++)
     {
+        // Get the toroidal y distance from the origin
+        int dy = abs(o_y - e_y);
+        if (dy > data->height / 2) dy = data->height - dy;
+
+        const double energy_y = data->energy_kernel[dy];
+        
         for(int e_x = 0; e_x < data->width; e_x++)
         {
-            // Get the toroidal distance from the origin
+            // Get the toroidal x distance from the origin
             int dx = abs(o_x - e_x);
-            int dy = abs(o_y - e_y);
-
             if (dx > data->width / 2) dx = data->width - dx;
-            if (dy > data->height / 2) dy = data->height - dy;
 
             // Increment or decrement by the value in the energy mask
-            const double energy = data->energy_mask[dx + dy * half_width];
-            data->energy_table[e_x + e_y * data->width] += energy * (double)operation;
+            const double energy_x = data->energy_kernel[dx];
+            data->energy_table[e_x + e_y * data->width] += energy_x * energy_y * (double)operation;
 
             // Update highest and lowest values
             if (invert)
@@ -169,11 +170,16 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
     // Allocate the energy table and energy mask
     const int half_width = width / 2 + 1;
     const int half_height = height / 2 + 1;
+    const int kernel_size = (width > height) ? width / 2 + 1 : height / 2 + 1; // The space is toroidal, so we only need half the size
     double* energy_table = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_table) * width * height);
-    double* energy_mask = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_mask) * half_width * half_height); // We only need one quadrant for the energy mask!
+    double* energy_kernel = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_kernel) * kernel_size); 
 
-    if (energy_table == NULL || energy_mask == NULL) 
+    if (energy_table == NULL || energy_kernel == NULL) 
+    {
+        if (energy_table != NULL) BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_table);
+        if (energy_kernel != NULL) BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_kernel);
         return 0;
+    }
 
     memset(energy_table, 0, sizeof(*energy_table) * width * height);
 
@@ -183,19 +189,16 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
     data.height         = height;
     data.buffer         = buffer;
     data.energy_table   = energy_table;
-    data.energy_mask    = energy_mask;
+    data.energy_kernel  = energy_kernel;
     data.highest.energy = -INFINITY;
     data.lowest.energy  = +INFINITY;
 
-    // Compute the energy mask
-    for (int y = 0; y < half_height; y++)
+    // Compute the energy kernel. Because our energy filter is separable, we only need to precompute the energy values along one axis! :)
+    for (int i = 0; i < kernel_size; i++)
     {
-        for (int x = 0; x < half_width; x++)
-        {
-            const double distance = (double)(x * x + y * y);
-            const double energy = exp(-distance / (2.0 * BLUE_NOISE_GENERATOR_INTERNAL_VAC_SIGMA * BLUE_NOISE_GENERATOR_INTERNAL_VAC_SIGMA));
-            energy_mask[x + y * half_width] = energy;
-        }
+        const double distance = (double)(i * i);
+        const double energy = exp(-distance / (2.0 * BLUE_NOISE_GENERATOR_INTERNAL_VAC_SIGMA * BLUE_NOISE_GENERATOR_INTERNAL_VAC_SIGMA));
+        energy_kernel[i] = energy;
     }
 
     // Create white noise input points
@@ -241,8 +244,8 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
 
     if (energy_table_temp == NULL) 
     {
-        free(energy_table);
-        free(energy_mask);
+        BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_table);
+        BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_kernel);
         return 0;
     }
 
@@ -257,7 +260,7 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
         blue_noise_generator_internal_void_and_cluster_update_energy(&data, data.highest.x, data.highest.y, BLUE_NOISE_GENERATOR_INTERNAL_SUB, 0);
     }
 
-    free(energy_table_temp);
+    BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_table_temp);
     data.energy_table = energy_table; // Restore pointer to original table
 
     /* PHASE 2 */
@@ -299,7 +302,7 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
     }
 
     BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_table);
-    BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_mask);
+    BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_kernel);
 
     return 1;
 }
@@ -336,11 +339,16 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_forced_random(unsig
     const int half_width = width / 2 + 1;
     const int half_height = height / 2 + 1;
     double* energy_table = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_table) * width * height);
-    double* energy_mask = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_mask) * half_width * half_height); // We only need one quadrant for the energy mask!
+    double* energy_kernel = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_kernel) * half_width * half_height);
     struct BlueNoiseGeneratorInternalForcedRandomCandidate* candidates = (struct BlueNoiseGeneratorInternalForcedRandomCandidate*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*candidates) * width * height);
 
-    if (energy_table == NULL || energy_mask == NULL || candidates == NULL) 
+    if (energy_table == NULL || energy_kernel == NULL || candidates == NULL) 
+    {
+        if (energy_table != NULL) BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_table);
+        if (energy_kernel != NULL) BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_kernel);
+        if (candidates != NULL) BLUE_NOISE_GENERATOR_INTERNAL_FREE(candidates);
         return 0;
+    }
 
     memset(buffer, 0, sizeof(*buffer) * width * height);
     memset(energy_table, 0, sizeof(*energy_table) * width * height);
@@ -355,14 +363,14 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_forced_random(unsig
         }
     }
 
-    // Compute the energy mask
+    // Compute the energy kernel. This energy function is not separable (?) so we must compute the full 2D quadrant
     for (int y = 0; y < half_height; y++)
     {
         for (int x = 0; x < half_width; x++)
         {
             const double distance = sqrt((double)(x * x + y * y));
             const double energy = exp(-pow(distance / BLUE_NOISE_GENERATOR_INTERNAL_FR_DEVIATION, BLUE_NOISE_GENERATOR_INTERNAL_FR_STEEPNESS));
-            energy_mask[x + y * half_width] = energy;
+            energy_kernel[x + y * half_width] = energy;
         }
     }
 
@@ -418,17 +426,18 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_forced_random(unsig
         
         for (int y = 0; y < height; y++)
         {
+            // Get the toroidal y distance from the origin
+            int dy = abs(minimum_y - y);
+            if (dy > height / 2) dy = height - dy;
+
             for(int x = 0; x < width; x++)
             {
-                // Get the toroidal distance from the origin
+                // Get the toroidal x distance from the origin
                 int dx = abs(minimum_x - x);
-                int dy = abs(minimum_y - y);
-
                 if (dx > width / 2) dx = width - dx;
-                if (dy > height / 2) dy = height - dy;
 
                 // Increment or decrement by the value in the energy mask
-                const double energy = energy_mask[dx + dy * half_width];
+                const double energy = energy_kernel[dx + dy * half_width];
                 energy_table[x + y * width] += energy;
             }
         }
@@ -441,7 +450,7 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_forced_random(unsig
     }
 
     BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_table);
-    BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_mask);
+    BLUE_NOISE_GENERATOR_INTERNAL_FREE(energy_kernel);
     BLUE_NOISE_GENERATOR_INTERNAL_FREE(candidates);
 
     return 1;
