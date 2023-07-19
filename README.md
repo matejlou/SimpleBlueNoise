@@ -87,17 +87,18 @@ Below is a comparison between the output of each algorithm and their correspondi
 
 # Performance
 
-The table below shows the run time of each algorithm for various texture resolutions, taken as an average of 10 iterations. We can see that Forced Random is about twice as fast as Void-and-Cluster.
+The table below shows the run time of each algorithm for various texture resolutions, taken as an average of 10 iterations. The parameters chosen are the same as above. We can see that Forced Random is about twice as fast as Void-and-Cluster given these parameters.
 
 Platform: _Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz_.
 
 | Resolution | Void-and-Cluster | Forced Random |
 |:-:         | :-:              | :-:           |
-| 16 x 16    | 2ms      | <1ms    |
-| 32 x 32    | 15ms     | 8ms     |
-| 64 x 64    | 231ms    | 128ms   |
-| 128 x 128  | 4s       | 2s      |
-| 256 x 256  | 62s      | 37s     |
+| 16 x 16    | 1ms      | <1ms    |
+| 32 x 32    | 13ms     | 6ms     |
+| 64 x 64    | 205ms    | 105ms   |
+| 128 x 128  | 3.9s     | 1.7s    |
+| 256 x 256  | 59.6s    | 31.7s   |
+| 512 x 512  | 13m 53s  | 9m 0s   |
 
 # Additional Reading
 
