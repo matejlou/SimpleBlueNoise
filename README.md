@@ -2,21 +2,21 @@
 A small, header-only blue noise texture generator in C99.
 
 # Usage
-To use the library, simply **#include** the header file. You must **#define** the implementation in exactly _one_ .c/.cpp file.
+To use the library, simply `#include` the header file. You must `#define` the implementation in exactly _one_ .c/.cpp file.
 
 ```c
 #define BLUE_NOISE_GENERATOR_IMPLEMENTATION
 #include "blue_noise_generator.h"
 ```
 
-The library includes two different algorithms to produce blue noise textures. Both functions expect a pointer to a contiguous array of **unsigned int**, the size of which should be equal to **width** × **height**. 
+The library includes two different algorithms to produce blue noise textures. Both functions expect a pointer to a contiguous array of `unsigned int`, the size of which should be equal to `width` × `height`. 
 
 ```c
 int blue_noise_generator_create_void_and_cluster(unsigned int* buffer, int width, int height);
 int blue_noise_generator_create_forced_random(unsigned int* buffer, int width, int height);
 ```
 
-Each function returns 1 on success and 0 on failure. If successful, every value in the buffer will be given a unique rank starting from 0 counting up to **width** × **height** - 1. This should make it easy to normalise the values to fit your desired texture format.
+Each function returns 1 on success and 0 on failure. If successful, every value in the buffer will be given a unique rank starting from 0 counting up to `width` × `height` - 1. This should make it easy to normalise the values to fit your desired texture format.
 
 The library uses its own psuedorandom number generator, and includes a function to set the current seed:
 
