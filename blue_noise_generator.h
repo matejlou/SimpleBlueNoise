@@ -170,7 +170,7 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
     // Allocate the energy table and energy mask
     const int half_width = width / 2 + 1;
     const int half_height = height / 2 + 1;
-    const int kernel_size = (width > height) ? width / 2 + 1 : height / 2 + 1; // The space is toroidal, so we only need half the size
+    const int kernel_size = (width > height) ? half_width : half_height; // The space is toroidal, so we only need half the size
     double* energy_table = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_table) * width * height);
     double* energy_kernel = (double*)BLUE_NOISE_GENERATOR_INTERNAL_MALLOC(sizeof(*energy_kernel) * kernel_size); 
 
@@ -266,7 +266,7 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
     /* PHASE 2 */
 
     // Add samples until half the pattern is filled
-    while (sample_count < width * height / 2)
+    while (sample_count < (unsigned int)(width * height / 2))
     {
         buffer[data.lowest.x + data.lowest.y * width] = ++sample_count;
         blue_noise_generator_internal_void_and_cluster_update_energy(&data, data.lowest.x, data.lowest.y, BLUE_NOISE_GENERATOR_INTERNAL_ADD, 0);
@@ -289,7 +289,7 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_void_and_cluster(un
     }
 
     // Continue to add samples until the whole pattern is filled
-    while (sample_count < width * height)
+    while (sample_count < (unsigned int)(width * height))
     {
         buffer[data.highest.x + data.highest.y * width] = ++sample_count;
         blue_noise_generator_internal_void_and_cluster_update_energy(&data, data.highest.x, data.highest.y, BLUE_NOISE_GENERATOR_INTERNAL_SUB, 1);
@@ -376,9 +376,9 @@ BLUE_NOISE_GENERATOR_LINKAGE int blue_noise_generator_create_forced_random(unsig
 
     // Progressively add sample points until the pattern is filled
     unsigned int sample_count = 0;
-    struct { double energy; int candidate; } minimum;
+    struct { double energy; int candidate; } minimum = { 0.0, 0 };
     
-    while (sample_count < width * height)
+    while (sample_count < (unsigned int)(width * height))
     {
         minimum.energy = INFINITY;
 
